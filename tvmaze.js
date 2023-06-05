@@ -12573,6 +12573,7 @@ var $ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"
 var $showsList = $("#showsList");
 var $episodesArea = $("#episodesArea");
 var $searchForm = $("#searchForm");
+var $episodesList = $("#episodesList");
 var DEFAULT_IMG = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rnoj8CMUSs8wMCwoKlnWlh5Jiq.jpg";
 /** Given a search term, search for tv shows that match that query.
  *
@@ -12581,30 +12582,34 @@ var DEFAULT_IMG = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rn
  *    (if no image URL given by API, put in a default image URL)
  */
 function getShowsByTerm(term) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var result, data, filteredResult;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var result, filteredResult;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0: return [4 /*yield*/, axios_1.default.get("https://api.tvmaze.com/search/shows?q=".concat(term))];
                 case 1:
-                    result = _a.sent();
-                    data = result.data;
-                    filteredResult = data.map(function (show) {
-                        var _a, _b;
-                        return ({
-                            id: show.show.id,
-                            name: show.show.name,
-                            summary: show.show.summary,
-                            image: ((_b = (_a = show.show) === null || _a === void 0 ? void 0 : _a.image) === null || _b === void 0 ? void 0 : _b.medium) || DEFAULT_IMG
-                        });
+                    result = _c.sent();
+                    filteredResult = result.data.map(show);
+                    ({
+                        id: show.show.id,
+                        name: show.show.name,
+                        summary: show.show.summary,
+                        image: ((_b = (_a = show.show) === null || _a === void 0 ? void 0 : _a.image) === null || _b === void 0 ? void 0 : _b.medium) || DEFAULT_IMG
                     });
+                    ;
                     console.log("results are", filteredResult);
                     return [2 /*return*/, filteredResult];
             }
         });
     });
 }
-//TODO: docstring
+/**
+
+Displays episodes of a show.
+@param {number} showId - The ID of the show for which to display episodes.
+@returns {Promise<void>} - A Promise that resolves when the episodes are displayed.
+*/
 function displayEpisodesOfShow(showId) {
     return __awaiter(this, void 0, void 0, function () {
         var episodes;
@@ -12642,7 +12647,7 @@ function searchForShowAndDisplay() {
             switch (_a.label) {
                 case 0:
                     term = $("#searchForm-term").val();
-                    return [4 /*yield*/, getShowsByTerm(term.toString())];
+                    return [4 /*yield*/, getShowsByTerm(term)];
                 case 1:
                     shows = _a.sent();
                     $episodesArea.hide();
@@ -12671,14 +12676,13 @@ $searchForm.on("submit", function (evt) {
  */
 function getEpisodesOfShow(id) {
     return __awaiter(this, void 0, void 0, function () {
-        var result, data, episodes;
+        var result, episodes;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, axios_1.default.get("http://api.tvmaze.com/shows/".concat(id, "/episodes"))];
                 case 1:
                     result = _a.sent();
-                    data = result.data;
-                    episodes = data.map(function (episode) { return ({
+                    episodes = result.data.map(function (episode) { return ({
                         id: episode.id,
                         name: episode.name,
                         season: episode.season,
@@ -12694,15 +12698,14 @@ function getEpisodesOfShow(id) {
  * @param episodes array of episodes
  */
 function populateEpisodes(episodes) {
-    var episodesArea = document.getElementById("episodesArea");
-    var episodesList = document.getElementById("episodesList");
+    $episodesList.empty();
     for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
         var ep = episodes_1[_i];
         var li = document.createElement("li");
         li.innerText = "".concat(ep.name, " (season ").concat(ep.season, ", number ").concat(ep.number, ")");
-        episodesList.append(li);
+        $episodesList.append(li);
     }
-    episodesArea.setAttribute("style", "display: block");
+    $episodesArea.attr("style", "display: block");
 }
 
 

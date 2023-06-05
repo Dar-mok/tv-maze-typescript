@@ -4,6 +4,7 @@ import * as $ from 'jquery';
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
+const $episodesList = $("#episodesList");
 
 const DEFAULT_IMG: string = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rnoj8CMUSs8wMCwoKlnWlh5Jiq.jpg";
 
@@ -33,8 +34,9 @@ interface EpisodeInterface {
 async function getShowsByTerm(term: string): Promise<ShowInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   let result = await axios.get(`https://api.tvmaze.com/search/shows?q=${term}`);
-  let data: any[] = result.data;
-  let filteredResult: ShowInterface[] = data.map(show => (
+  //dont use any
+  // let data: any[] = result.data;
+  let filteredResult: ShowInterface[] = result.data.map(show: => (
     {
       id: show.show.id,
       name: show.show.name,
@@ -46,7 +48,13 @@ async function getShowsByTerm(term: string): Promise<ShowInterface[]> {
   return filteredResult;
 }
 
-//TODO: docstring
+
+/**
+
+Displays episodes of a show.
+@param {number} showId - The ID of the show for which to display episodes.
+@returns {Promise<void>} - A Promise that resolves when the episodes are displayed.
+*/
 async function displayEpisodesOfShow(showId: number) {
   const episodes = await getEpisodesOfShow(showId);
   populateEpisodes(episodes);
@@ -54,7 +62,7 @@ async function displayEpisodesOfShow(showId: number) {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows) {
+function populateShows(shows:ShowInterface[]) {
   $showsList.empty();
 
   for (let show of shows) {
@@ -87,8 +95,8 @@ function populateShows(shows) {
  */
 
 async function searchForShowAndDisplay() {
-  const term = $("#searchForm-term").val();
-  const shows = await getShowsByTerm(term.toString());
+  const term = $("#searchForm-term").val() as string;
+  const shows = await getShowsByTerm(term);
 
   $episodesArea.hide();
   populateShows(shows);
@@ -107,8 +115,8 @@ $searchForm.on("submit", async function (evt) {
 async function getEpisodesOfShow(id: number): Promise<EpisodeInterface[]> {
   const result = await axios.get(`http://api.tvmaze.com/shows/${id}/episodes`);
 
-  const data: any[] = result.data;
-  const episodes = data.map(episode => ({
+  // const data: [] = result.data;
+  const episodes = result.data.map(episode => ({
     id: episode.id,
     name: episode.name,
     season: episode.season,
@@ -124,14 +132,13 @@ async function getEpisodesOfShow(id: number): Promise<EpisodeInterface[]> {
  * @param episodes array of episodes
  */
 function populateEpisodes(episodes: EpisodeInterface[]): void {
-  const episodesArea = document.getElementById("episodesArea");
-  const episodesList = document.getElementById("episodesList");
+  $episodesList.empty()
 
   for (const ep of episodes) {
     const li = document.createElement("li");
     li.innerText = `${ep.name} (season ${ep.season}, number ${ep.number})`;
-    episodesList.append(li);
+    $episodesList.append(li);
   }
 
-  episodesArea.setAttribute("style", "display: block");
+  $episodesArea.attr("style", "display: block");
 }
