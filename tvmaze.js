@@ -12582,33 +12582,32 @@ var DEFAULT_IMG = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rn
  *    (if no image URL given by API, put in a default image URL)
  */
 function getShowsByTerm(term) {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var result, filteredResult;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0: return [4 /*yield*/, axios_1.default.get("https://api.tvmaze.com/search/shows?q=".concat(term))];
                 case 1:
-                    result = _c.sent();
-                    filteredResult = result.data.map(show);
-                    ({
-                        id: show.show.id,
-                        name: show.show.name,
-                        summary: show.show.summary,
-                        image: ((_b = (_a = show.show) === null || _a === void 0 ? void 0 : _a.image) === null || _b === void 0 ? void 0 : _b.medium) || DEFAULT_IMG
-                    });
-                    ;
-                    console.log("results are", filteredResult);
-                    return [2 /*return*/, filteredResult];
+                    result = _a.sent();
+                    return [2 /*return*/, result.data.map(function (show) {
+                            var _a;
+                            var _b = show.show, id = _b.id, name = _b.name, summary = _b.summary;
+                            return {
+                                id: id,
+                                name: name,
+                                summary: summary,
+                                image: ((_a = show.show.image) === null || _a === void 0 ? void 0 : _a.medium) || DEFAULT_IMG
+                            };
+                        })];
             }
         });
     });
 }
 /**
-
-Displays episodes of a show.
-@param {number} showId - The ID of the show for which to display episodes.
-@returns {Promise<void>} - A Promise that resolves when the episodes are displayed.
+*
+* Displays episodes of a show.
+* @param {number} showId - The ID of the show for which to display episodes.
+* @returns {Promise<void>} - A Promise that resolves when the episodes are displayed.
 */
 function displayEpisodesOfShow(showId) {
     return __awaiter(this, void 0, void 0, function () {
@@ -12676,19 +12675,16 @@ $searchForm.on("submit", function (evt) {
  */
 function getEpisodesOfShow(id) {
     return __awaiter(this, void 0, void 0, function () {
-        var result, episodes;
+        var result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, axios_1.default.get("http://api.tvmaze.com/shows/".concat(id, "/episodes"))];
                 case 1:
                     result = _a.sent();
-                    episodes = result.data.map(function (episode) { return ({
-                        id: episode.id,
-                        name: episode.name,
-                        season: episode.season,
-                        number: episode.number
-                    }); });
-                    return [2 /*return*/, episodes];
+                    return [2 /*return*/, result.data.map(function (episode) {
+                            var id = episode.id, name = episode.name, season = episode.season, number = episode.number;
+                            return { id: id, name: name, season: season, number: number };
+                        })];
             }
         });
     });
