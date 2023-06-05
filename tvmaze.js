@@ -12589,14 +12589,32 @@ function getShowsByTerm(term) {
                 case 1:
                     result = _a.sent();
                     data = result.data;
-                    filteredResult = data.map(function (show) { return ({
-                        id: show.id,
-                        name: show.name,
-                        summary: show.summary,
-                        image: show.image.medium || DEFAULT_IMG
-                    }); });
+                    filteredResult = data.map(function (show) {
+                        var _a, _b;
+                        return ({
+                            id: show.show.id,
+                            name: show.show.name,
+                            summary: show.show.summary,
+                            image: ((_b = (_a = show.show) === null || _a === void 0 ? void 0 : _a.image) === null || _b === void 0 ? void 0 : _b.medium) || DEFAULT_IMG
+                        });
+                    });
                     console.log("results are", filteredResult);
                     return [2 /*return*/, filteredResult];
+            }
+        });
+    });
+}
+//TODO: docstring
+function displayEpisodesOfShow(showId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var episodes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getEpisodesOfShow(showId)];
+                case 1:
+                    episodes = _a.sent();
+                    populateEpisodes(episodes);
+                    return [2 /*return*/];
             }
         });
     });
@@ -12604,10 +12622,14 @@ function getShowsByTerm(term) {
 /** Given list of shows, create markup for each and to DOM */
 function populateShows(shows) {
     $showsList.empty();
+    var _loop_1 = function (show) {
+        var $show = $("<div data-show-id=\"".concat(show.id, "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"").concat(show.image, "\"\n              alt=\"").concat(show.name, "\"\n              class=\"w-25 me-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">").concat(show.name, "</h5>\n             <div><small>").concat(show.summary, "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      "));
+        $show.on("click", ".Show-getEpisodes", function () { return displayEpisodesOfShow(show.id); });
+        $showsList.append($show);
+    };
     for (var _i = 0, shows_1 = shows; _i < shows_1.length; _i++) {
         var show = shows_1[_i];
-        var $show = $("<div data-show-id=\"".concat(show.id, "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg\"\n              alt=\"Bletchly Circle San Francisco\"\n              class=\"w-25 me-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">").concat(show.name, "</h5>\n             <div><small>").concat(show.summary, "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      "));
-        $showsList.append($show);
+        _loop_1(show);
     }
 }
 /** Handle search form submission: get shows from API and display.
@@ -12647,9 +12669,41 @@ $searchForm.on("submit", function (evt) {
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
-// async function getEpisodesOfShow(id) { }
-/** Write a clear docstring for this function... */
-// function populateEpisodes(episodes) { }
+function getEpisodesOfShow(id) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result, data, episodes;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, axios_1.default.get("http://api.tvmaze.com/shows/".concat(id, "/episodes"))];
+                case 1:
+                    result = _a.sent();
+                    data = result.data;
+                    episodes = data.map(function (episode) { return ({
+                        id: episode.id,
+                        name: episode.name,
+                        season: episode.season,
+                        number: episode.number
+                    }); });
+                    return [2 /*return*/, episodes];
+            }
+        });
+    });
+}
+/**
+ * populates episode info into the #episodesList part of the DOM
+ * @param episodes array of episodes
+ */
+function populateEpisodes(episodes) {
+    var episodesArea = document.getElementById("episodesArea");
+    var episodesList = document.getElementById("episodesList");
+    for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
+        var ep = episodes_1[_i];
+        var li = document.createElement("li");
+        li.innerText = "".concat(ep.name, " (season ").concat(ep.season, ", number ").concat(ep.number, ")");
+        episodesList.append(li);
+    }
+    episodesArea.setAttribute("style", "display: block");
+}
 
 
 /***/ })

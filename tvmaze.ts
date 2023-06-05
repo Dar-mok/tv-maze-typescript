@@ -5,14 +5,22 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
-interface ShowInterface{
+const DEFAULT_IMG: string = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rnoj8CMUSs8wMCwoKlnWlh5Jiq.jpg";
+
+interface ShowInterface {
   id: number,
   name: string,
   summary: string,
-  image: string
+  image: string;
 }
 
-const DEFAULT_IMG:string = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505_u0bFT1Rnoj8CMUSs8wMCwoKlnWlh5Jiq.jpg";
+interface EpisodeInterface {
+  id: number,
+  name: string,
+  season: string,
+  number: string;
+}
+
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -22,22 +30,27 @@ const DEFAULT_IMG:string = "https://t4.ftcdn.net/jpg/03/03/62/45/240_F_303624505
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function getShowsByTerm(term: string) : Promise<ShowInterface []>   {
+async function getShowsByTerm(term: string): Promise<ShowInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   let result = await axios.get(`https://api.tvmaze.com/search/shows?q=${term}`);
-  let data:any[] = result.data;
-  let filteredResult:ShowInterface[] = data.map(show=>(
+  let data: any[] = result.data;
+  let filteredResult: ShowInterface[] = data.map(show => (
     {
-      id: show.id,
-      name: show.name,
-      summary: show.summary,
-      image: show.image.medium || DEFAULT_IMG
+      id: show.show.id,
+      name: show.show.name,
+      summary: show.show.summary,
+      image: show.show?.image?.medium || DEFAULT_IMG
     }
-  ))
-  console.log("results are", filteredResult)
+  ));
+  console.log("results are", filteredResult);
   return filteredResult;
 }
 
+//TODO: docstring
+async function displayEpisodesOfShow(showId: number) {
+  const episodes = await getEpisodesOfShow(showId);
+  populateEpisodes(episodes);
+}
 
 /** Given list of shows, create markup for each and to DOM */
 
@@ -46,11 +59,11 @@ function populateShows(shows) {
 
   for (let show of shows) {
     const $show = $(
-        `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
+      `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
-              alt="Bletchly Circle San Francisco"
+              src="${show.image}"
+              alt="${show.name}"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -63,7 +76,9 @@ function populateShows(shows) {
        </div>
       `);
 
-    $showsList.append($show);  }
+    $show.on("click", ".Show-getEpisodes", () => displayEpisodesOfShow(show.id));
+    $showsList.append($show);
+  }
 }
 
 
@@ -89,8 +104,34 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id: number): Promise<EpisodeInterface[]> {
+  const result = await axios.get(`http://api.tvmaze.com/shows/${id}/episodes`);
 
-/** Write a clear docstring for this function... */
+  const data: any[] = result.data;
+  const episodes = data.map(episode => ({
+    id: episode.id,
+    name: episode.name,
+    season: episode.season,
+    number: episode.number
+  }));
 
-// function populateEpisodes(episodes) { }
+  return episodes;
+}
+
+
+/**
+ * populates episode info into the #episodesList part of the DOM
+ * @param episodes array of episodes
+ */
+function populateEpisodes(episodes: EpisodeInterface[]): void {
+  const episodesArea = document.getElementById("episodesArea");
+  const episodesList = document.getElementById("episodesList");
+
+  for (const ep of episodes) {
+    const li = document.createElement("li");
+    li.innerText = `${ep.name} (season ${ep.season}, number ${ep.number})`;
+    episodesList.append(li);
+  }
+
+  episodesArea.setAttribute("style", "display: block");
+}
